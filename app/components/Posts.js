@@ -1,54 +1,43 @@
 import React, { Component } from 'react'
-import { stories } from '../utils/api'
-import PostsList from './PostsList'
+import Wrapper from './Wrapper';
+import DataDisplay from './DataDisplay';
+import { fetchMap } from '../utils/api'
 
-class Posts extends Component {
+export default class Posts extends Component {
     constructor(props) {
         super(props)
-    
         this.state = {
-            posts: null,
-            error: null,
-            loading: true,
+            postsMap: [],
         }
+        this._isMounted = false;
     }
     componentDidMount() {
-        this.fetch()
+        this._isMounted = true;
+        this.props.getMap().then(
+            postsMap=>{
+                this._isMounted&&this.setState({postsMap})
+            }
+        );
     }
-    componentDidUpdate(prevProps) {
-        if(prevProps!=this.props){
-            this.fetch();
-        }
+    componentWillUnmount() {
+        this._isMounted = false;
     }
-
-    fetch() {
-        this.setState({
-            posts: null,
-            error: null,
-            loading: true
-        });
-        stories(this.props.storyType)
-            .then(posts=>this.setState({
-                posts,
-                error: null,
-                loading: false
-            }))
-            .catch(({message})=>this.setState({
-                error: message,
-                loading: false 
-            }));
-    }
-
     render() {
-        const {posts, error, loading} = this.state;
         return (
-            <>
-                {loading&&<div>loading</div>}
-                {error&&<div>{error}</div>}
-                {posts&&<PostsList posts={posts}/>}
-            </>
+            <Wrapper dataMap={this.state.postsMap} incr={50} history={this.props.history} location={this.props.location} match={this.props.match} >
+                {({loading, error, data}) => {
+                    return (
+                        <DataDisplay 
+                            data={data}
+                            error={error}
+                            loading={loading}
+                            history={this.props.history}
+                            location={this.props.location}
+                            match={this.props.match}
+                        />
+                    )
+                }}
+            </Wrapper>
         )
     }
 }
-
-export default Posts

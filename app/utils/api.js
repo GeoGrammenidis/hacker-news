@@ -8,15 +8,16 @@ export function fetchUser (id) {
 
 export function fetchItem (id) {
     return fetch(`${api}item/${id}${json}`)
-        .then((res) => res.json())
+        .then((res) =>{
+            return res.json()
+        })
 }
 
-export function stories(storyType) {
+export function fetchMap(storyType) {
     return fetch(`${api}${storyType}stories${json}`)
         .then(res=>res.json())
-        .then(ids=>ids.slice(0,50))
-        .then(ids=>{
-            return Promise.all(ids.map(fetchItem))
-        })
-        .catch(err=>"some error")
+}
+
+export function fetchData(ids) {
+    return Promise.all(ids.map(fetchItem))
 }

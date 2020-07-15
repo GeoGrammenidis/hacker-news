@@ -1,9 +1,12 @@
 import React, { Component } from 'react'
 import queryString from 'query-string'
 import { fetchItem } from '../utils/api'
-import PostMetaInfo from './PostMetaInfo'
+import MetaInfo from './MetaInfo'
+import Posts from './Posts'
+import Loading from './Loading'
 
-export class Post extends Component {
+
+export default class Post extends Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -11,15 +14,17 @@ export class Post extends Component {
             error: null,
             loading: true,
         }
+        this._isMounted = false;
     }
     componentDidMount() {
+        this._isMounted = true;
         fetchItem(queryString.parse(location.search).id)
-        .then(post => this.setState({
+        .then(post => this._isMounted&&this.setState({
             post,
             error: null,
             loading: false
         }))
-        .catch(({message}) => this.setState({
+        .catch(({message}) => this._isMounted&&this.setState({
             post,
             error: message,
             loading: false     
@@ -28,18 +33,20 @@ export class Post extends Component {
 
     render() {
         const {loading, error, post} = this.state;
-        console.log(this.state);
         return (
-            <div>
-                {loading&&<div>Loading...</div>}
+            <>
+                {loading&&<Loading/>}
                 {error&&<div>{error}</div>}
                 {post&&<>
-                    <h1>{post.title}</h1>
-                    <PostMetaInfo by={post.by} time={post.time} commentsNumber={post.kids?post.kids.length:0}/>
+                    <h1 className="header">
+                        <a className="link" href={post.url}>{post.title}</a>
+                    </h1>
+                    {post.text&& <div dangerouslySetInnerHTML={{__html: post.text}}></div>}
+                    <MetaInfo by={post.by} time={post.time} commentsNumber={post.kids?post.kids.length:0}/>
+                    <Posts getMap={()=>Promise.all(post.kids?post.kids:[])} history={this.props.history} location={this.props.location} match={this.props.match}>
+                    </Posts>
                 </>}
-            </div>
+            </>
         )
     }
 }
-
-export default Post
